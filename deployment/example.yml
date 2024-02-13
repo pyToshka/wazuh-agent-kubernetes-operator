@@ -1,0 +1,16 @@
+---
+apiVersion: opennix.io/v1
+kind: wazuh-agent
+metadata:
+  name: demo
+  labels:
+    app: demo
+  annotations:
+    stack: demo
+spec:
+  name: 'demo'
+  image_url: 'opennix/wazuh-agent'
+  image_tag: '4.7.1'
+  manager_host: 'localhost'
+  api_password: 'fake'
+  api_username: 'fake'

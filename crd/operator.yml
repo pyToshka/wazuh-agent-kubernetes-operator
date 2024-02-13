@@ -1,0 +1,134 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: wazuh-agent.opennix.io
+spec:
+  scope: Namespaced
+  group: opennix.io
+  names:
+    kind: wazuh-agent
+    plural: wazuh-agent
+    singular: wazuh-agent
+    shortNames:
+      - wz
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                name:
+                  type: string
+                  default: 'opn'
+                image_url:
+                  type: string
+                  default: 'opennix/wazuh-agent'
+                image_tag:
+                  type: string
+                  default: 'latest'
+                manager_host:
+                  type: string
+                  default: ''
+                worker_host:
+                   type: string
+                   default: ''
+                api_username:
+                   type: string
+                api_password:
+                   type: string
+                group:
+                  type: string
+                  default: 'default'
+                memory_limits:
+                   type: string
+                   default: '128Mi'
+                cpu_limits:
+                   type: string
+                   default: '128m'
+                memory_requests:
+                   type: string
+                   default: '64Mi'
+                cpu_requests:
+                   type: string
+                   default: '64m'
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+      additionalPrinterColumns:
+        - name: Agent name
+          type: string
+          priority: 0
+          jsonPath: .spec.name
+          description: Wazuh Agent name
+        - name: Image Url
+          type: string
+          priority: 0
+          jsonPath: .spec.image_url
+          description: Wazuh docker image url
+        - name: Image tag
+          type: string
+          priority: 0
+          jsonPath: .spec.image_url
+          description: Wazuh docker image url
+        - name: manager host
+          type: string
+          priority: 0
+          jsonPath: .spec.manager_host
+          description: Ip address or Domain name of Wazuh server using for restapi calls
+        - name: worker host
+          type: string
+          priority: 0
+          jsonPath: .spec.worker_host
+          description: Ip address or Domain name of Wazuh worker for agent connection
+        - name: wazuh group
+          type: string
+          priority: 0
+          jsonPath: .spec.group
+          description: Group(s) name comma separated for auto adding agent
+        - name: api_username
+          type: string
+          priority: 0
+          jsonPath: .spec.api_username
+          description: Username for Wazuh API authorization
+        - name: api_password
+          type: string
+          priority: 0
+          jsonPath: .spec.api_password
+          description: Password for Wazuh API authorization
+        - name: memory_limits
+          type: string
+          priority: 0
+          jsonPath: .spec.memory_limits
+          description: Memory limit for Agent
+        - name: cpu_limits
+          type: string
+          priority: 0
+          jsonPath: .spec.cpu_limits
+          description: Cpu limit for Agent
+        - name: memory_requests
+          type: string
+          priority: 0
+          jsonPath: .spec.memory_requests
+          description: Memory requests for Agent
+        - name: memory_requests
+          type: string
+          priority: 0
+          jsonPath: .spec.cpu_requests
+          description: Cpu requests for Agent
+        - name: Children
+          type: string
+          priority: 0
+          jsonPath: .status.create_fn.children
+          description: The children pods created.
+        - name: Message
+          type: string
+          priority: 0
+          jsonPath: .status.create_fn.message
+          description: As returned from the handler (sometimes).

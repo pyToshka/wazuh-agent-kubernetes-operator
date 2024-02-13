@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ name }}-wazuh-agent
+  namespace: {{ namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ name }}-wazuh-agent
+  template:
+    metadata:
+      name: {{ name }}-wazuh-agent
+      creationTimestamp: null
+      labels:
+        app: {{ name }}-wazuh-agent
+    spec:
+      volumes:
+        - name: logscontainerspath
+          hostPath:
+            path: /var/log/containers
+            type: ''
+        - name: logdockercontainerpath
+          hostPath:
+            path: /var/lib/docker/containers
+            type: ''
+        - name: docker-socket-mount
+          hostPath:
+            path: /var/run/docker.sock
+            type: ''
+        - name: var-run
+          hostPath:
+            path: /var/run
+            type: ''
+        - name: dev
+          hostPath:
+            path: /dev
+            type: ''
+        - name: sys
+          hostPath:
+            path: /sys
+            type: ''
+        - name: proc
+          hostPath:
+            path: /proc
+            type: ''
+        - name: etc
+          hostPath:
+            path: /etc
+            type: ''
+        - name: boot
+          hostPath:
+            path: /boot
+            type: ''
+        - name: usr
+          hostPath:
+            path: /usr
+            type: ''
+        - name: modules
+          hostPath:
+            path: /lib/modules
+            type: ''
+        - name: log
+          hostPath:
+            path: /var/log
+            type: ''
+      containers:
+        - name: {{ name }}-wazuh-agent
+          image: {{ image_url }}:{{ image_tag }}
+          ports:
+            - name: agent-http
+              containerPort: 5000
+              protocol: TCP
+          env:
+            - name: JOIN_MANAGER_MASTER_HOST
+              value: {{ manager_host }}
+            - name: JOIN_MANAGER_WORKER_HOST
+              value: {{ worker_host }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: WAZUH_GROUPS
+              value: {{ group }}
+            - name: JOIN_MANAGER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ name }}-wazuh-api-cred
+                  key: username
+            - name: JOIN_MANAGER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ name }}-wazuh-api-cred
+                  key: password
+          resources:
+            limits:
+              memory: {{ memory_limits }}
+              cpu: {{ cpu_limits }}
+            requests:
+              memory: {{ memory_requests }}
+              cpu: {{ cpu_requests }}
+          volumeMounts:
+            - name: var-run
+              mountPath: /var/run
+            - name: dev
+              mountPath: /host/dev
+            - name: sys
+              readOnly: true
+              mountPath: /host/sys
+            - name: proc
+              readOnly: true
+              mountPath: /host/proc
+            - name: etc
+              readOnly: true
+              mountPath: /host/etc
+            - name: docker-socket-mount
+              mountPath: /var/run/docker.sock
+            - name: docker-socket-mount
+              mountPath: /host/var/run/docker.sock
+            - name: boot
+              readOnly: true
+              mountPath: /host/boot
+            - name: usr
+              readOnly: true
+              mountPath: /host/usr
+            - name: modules
+              readOnly: true
+              mountPath: /host/lib/modules
+            - name: log
+              readOnly: true
+              mountPath: /var/log
+            - name: logscontainerspath
+              readOnly: true
+              mountPath: /var/log/containers
+              mountPropagation: None
+            - name: logdockercontainerpath
+              readOnly: true
+              mountPath: /var/lib/docker/containers
+              mountPropagation: None
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      hostPID: true
+      hostIPC: true
+      securityContext: {}
+      schedulerName: default-scheduler
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  revisionHistoryLimit: 10
